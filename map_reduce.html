@@ -1,0 +1,119 @@
+<head>
+  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+</head>
+
+<body>
+	<h1> HADOOP &#60;3</h1>
+
+	<h2> Input </h2>
+	<form id="inputForm" name="input">
+		<div class="input"><input type="text" name="input0" value="Hadoop uses MapReduce"><br></div>
+		<div class="input"><input type="text" name="input1" value="There is a Map phase"><br></div>
+		<div class="input"><input type="text" name="input2"><br></div>
+		<div class="input"><input type="text" name="input3" value="There is a Reduce phase"><br></div>
+	</form>
+	<button onclick="addButton();">Add</button>
+	<button onclick="removeButton();">Remove</button>
+
+	<h2> Output </h2>
+	<form name="setting">
+		Nbr of Reducers<br><input type="number" name="reducer" value="3" min="1"><br>
+	</form>
+	<button onclick="validateButton();">Validate</button>
+</body>
+
+<script>
+
+	var inputs = 4;
+	var reducers = 3;
+
+	// MAPPER
+	function map(string){
+		var array = string.split(/\s+/); //Separate Words
+		var output = new Array();
+
+		for(var i = 0; i < array.length; i++){
+			if(array[i]!=""){ //Shield
+				output[i] = [array[i].toLowerCase(),1]; //Add value to words
+				$("body").append('<li>'+output[i]+'</li>');
+			}
+		}
+
+		return output;
+	}
+
+	function addButton(){ //add an input
+		$("#inputForm").last().append('<div class="input"><input type="text" name="input'+inputs+'"><br></div>');
+		inputs = inputs + 1;
+	}
+
+	function removeButton(){ // delete and input
+		if(inputs>1){
+			inputs = inputs -1;
+			$(".input").last().remove();
+		}
+	}
+
+	function validateButton(){ // launch algorithm
+
+		var data = new Array();
+		var list;
+		reducers = document.forms["setting"]["reducer"].value;
+		$("body").append('<h3>Mapper</h3>');
+
+		for(var i = 0; i < inputs; i++){ // Mapping of each input
+			var string = document.forms["inputForm"]["input"+i].value;
+			$("body").append('<p>Mapper : '+i+'<p>');
+			var array = map(string);
+			data[i] = array;
+		}
+		list = sortList(data); //Sorted list of all words with their reducer
+		$("body").append('<h3>reducer</h3>');
+		for(var i = 0; i < reducers ;i++){
+			reducer(data,list,i);
+		}
+	}
+
+	function sortList(data){
+		var list = new Array();
+
+		for(var i = 0; i < data.length; i++){ // list of UNIQUE words
+			for(var y = 0; y < data[i].length; y++){
+				var word = data[i][y][0];
+				if(list.indexOf(word)==-1){
+					list.push(word);
+				}
+			}
+		}
+		list.sort(); // sort the list of UNIQUE words
+		var outputList = new Array();
+		$("body").append('<h3>shuffle</h3>');
+		for(var i = 0; i < list.length; i++){ // add reducer value to a word
+			outputList[list[i]] = parseInt(i*reducers/list.length);
+			$("body").append('<li>Reducer : '+outputList[list[i]]+' - '+list[i]+'</li>');
+		}
+
+		return outputList;
+	}
+
+	function reducer(data,list,num){
+		$("body").append('<ul>Reducer '+ num +'</ul>');
+		var output = {};
+		for(var i in list){ // add reducer value to a word
+			if(list[i]==num){
+				var nbr = 0;
+				for(var x = 0; x < data.length; x++){
+					for(var y = 0; y < data[x].length; y++){
+						var word=data[x][y][0];
+						if(word==i){
+							nbr++;
+							output[word]=nbr;
+						}
+					}
+				}
+				$("body").append('<p>'+i+' - '+nbr+'</p>');
+			}
+		}
+	}
+
+</script>
